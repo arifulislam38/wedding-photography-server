@@ -61,6 +61,60 @@ run();
                 error: error.message
             })
             }
+        });
+
+        app.get('/services', async(req, res) =>{
+            try {
+              const cursor = serviceCollection.find({});
+              const service = await cursor.toArray();
+              res.send({
+                success: true,
+                message : `Successfully got the service`,
+                data: service, 
+            });
+            } catch (error) {
+              res.send({
+                success: false,
+                error: error.message
+            })
+            }
+        });
+
+        app.get('/service/:id', async(req, res)=>{
+          try {
+            const id = req.params.id;
+            const service = await serviceCollection.findOne({_id: ObjectId(id)});
+          
+             res.send({
+                success: true,
+                message : `Successfully got the service`,
+                data: service, 
+            });
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
+
+
+        app.post('/review', async(req, res) =>{
+          try {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+
+            res.send({
+                success: true,
+                message : `Thanks for your review, Good wish for you`
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
         })
 
 
