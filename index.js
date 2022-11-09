@@ -115,7 +115,28 @@ run();
                 error: error.message
             })
           }
-        })
+        });
+
+
+        app.get('/review', async(req, res) =>{
+          try {
+            const name = req.query.name;
+            const cursor = await reviewCollection.find({name}).sort({time : -1});
+            const result = await cursor.toArray();
+            res.send({
+                success: true,
+                message : `all products finded`,
+                data: result
+
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
 
 
 
