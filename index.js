@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
+const jwt = require('jsonwebtoken');
 
 const port = process.env.PORT || 5000;
 
@@ -27,6 +28,43 @@ async function run() {
   }
 }
 run();
+
+        app.post('/jwt', (req, res) =>{
+            try {
+                const user = req.body;
+                const token = jwt.sign(user,process.env.JWT_secret,{expiresIn:'1h'});
+                res.send({
+                    token,
+                    success: true,
+                    message: 'successfully got the token'
+                });
+            } catch (error) {
+               res.send({
+                 success: false,
+                 message: error.message
+               })
+            }
+        });
+
+        app.get('/service', async(req, res) =>{
+            try {
+              const cursor = serviceCollection.find({});
+              const service = await cursor.limit(3).toArray();
+              res.send({
+                success: true,
+                message : `Successfully got the service`,
+                data: service, 
+            });
+            } catch (error) {
+              res.send({
+                success: false,
+                error: error.message
+            })
+            }
+        })
+
+
+
 
 
 
