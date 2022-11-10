@@ -19,6 +19,23 @@ const serviceCollection = client.db('wedding-services').collection('services');
 
 const reviewCollection = client.db('wedding-services').collection('reviews');
 
+function verifyJWT(req, res, next){
+    const authHeader = req.headers.authorization;
+
+    if(!authHeader){
+        return res.status(401).send({message: 'unauthorized access'});
+    }
+    const token = authHeader.split(' ')[1];
+
+    jwt.verify(token, process.env.JWT_secret, function(err, decoded){
+        if(err){
+            return res.status(403).send({message: 'Forbidden access'});
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 async function run() {
   try {
     await client.connect();
@@ -138,6 +155,122 @@ run();
           }
         });
 
+        app.get('/reviews',verifyJWT, async(req, res) =>{
+          try {
+            const decoded = req.decoded;
+            // console.log(decoded.email, req.query.email)
+            if(decoded.email !== req.query.email){
+                return res.status(403).send({message: 'unauthorized access'})
+            }
+
+            let query = {};
+            if (req.query.email) {
+                query = {
+                    email: req.query.email
+                }
+            }
+            
+            const cursor = reviewCollection.find(query).sort({time : -1});
+            const result = await cursor.toArray();
+            
+            res.send({
+                success: true,
+                message : `all reviews found`,
+                data: result
+                
+
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
+
+
+        app.delete('/reviews/:id', async (req, res) => {
+            try {
+              const id = req.params.id;
+              const query = { _id: ObjectId(id) };
+              const result = await reviewCollection.deleteOne(query);
+              res.send({
+                success: true,
+                message : 'successfully deleted',
+                data: result
+            });
+            } catch (error) {
+              res.send({
+                success: false,
+                error: error.message
+            })
+            }
+        });
+
+
+        app.get('/update/:id', async(req, res) =>{
+          try {
+            const id = req.params.id;
+            const cursor = await reviewCollection.findOne({_id: ObjectId(id)});
+            // const result = await cursor.toArray();
+            res.send({
+                success: true,
+                message : `all products finded`,
+                data: cursor
+
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
+        
+
+        app.patch('/updates/:id', async(req, res) =>{
+          try {
+            const id = req.params.id;
+            const text = req.body.details;
+            const query = { _id: ObjectId(id) };
+            const result = await reviewCollection.updateOne(query, {$set: {details: text}}, { upsert: true });
+            console.log(text)
+
+            res.send({
+                success: true,
+                message : `updated`,
+                data: result
+
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
+
+        app.post('/addservice', async(req, res) =>{
+          try {
+            const service = req.body;
+            const result = await serviceCollection.insertOne(service);
+
+            res.send({
+                success: true,
+                message : `Thanks for your review, Good wish for you`,
+                data: result
+            });
+
+          } catch (error) {
+             res.send({
+                success: false,
+                error: error.message
+            })
+          }
+        });
 
 
 
