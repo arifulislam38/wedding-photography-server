@@ -19,6 +19,8 @@ const serviceCollection = client.db('wedding-services').collection('services');
 
 const reviewCollection = client.db('wedding-services').collection('reviews');
 
+// middleware added for jwt token
+
 function verifyJWT(req, res, next){
     const authHeader = req.headers.authorization;
 
@@ -35,6 +37,10 @@ function verifyJWT(req, res, next){
         next();
     })
 }
+
+// middleware end
+
+// run function for db connected
 
 async function run() {
   try {
@@ -155,10 +161,11 @@ run();
           }
         });
 
+        // verify jwt token for reviews given
+
         app.get('/reviews',verifyJWT, async(req, res) =>{
           try {
             const decoded = req.decoded;
-            // console.log(decoded.email, req.query.email)
             if(decoded.email !== req.query.email){
                 return res.status(403).send({message: 'unauthorized access'})
             }
@@ -213,7 +220,6 @@ run();
           try {
             const id = req.params.id;
             const cursor = await reviewCollection.findOne({_id: ObjectId(id)});
-            // const result = await cursor.toArray();
             res.send({
                 success: true,
                 message : `all products finded`,
