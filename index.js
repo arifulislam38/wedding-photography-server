@@ -52,6 +52,7 @@ async function run() {
 }
 run();
 
+// run function ended
         app.post('/jwt', (req, res) =>{
             try {
                 const user = req.body;
